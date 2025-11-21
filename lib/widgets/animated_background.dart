@@ -15,51 +15,80 @@ class AnimatedBackground extends StatefulWidget {
 
 class _AnimatedBackgroundState extends State<AnimatedBackground>
     with TickerProviderStateMixin {
-  final List<Particle> _particles = [];
+  final List<StarParticle> _particles = [];
   final List<ClickRipple> _ripples = [];
   Offset? _mousePosition;
-  late AnimationController _fadeController;
+  late AnimationController _spawnController;
   late AnimationController _rippleController;
+  final math.Random _random = math.Random();
   
   @override
   void initState() {
     super.initState();
     
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    // Controller that ticks every frame to update particles
+    _spawnController = AnimationController(
+      duration: const Duration(seconds: 1),
       vsync: this,
-    );
+    )..repeat();
 
     _rippleController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    // Initialize particles
-    _initializeParticles();
-    
-    // Start animation loop
-    _fadeController.repeat(reverse: false);
+    // Start spawning particles
+    _startParticleSpawning();
   }
 
-  void _initializeParticles() {
-    final random = math.Random();
-    // Create 40-60 particles
-    for (int i = 0; i < 50; i++) {
-      _particles.add(Particle(
-        x: random.nextDouble(),
-        y: random.nextDouble(),
-        size: 8.0 + random.nextDouble() * 20, // 8-28px
-        opacity: 0.0,
-        baseOpacity: 0.15 + random.nextDouble() * 0.25, // 0.15-0.4
-      ));
-    }
+  void _startParticleSpawning() {
+    // Spawn new particles periodically
+    _spawnController.addListener(() {
+      // Spawn a new particle every ~150-300ms (randomized)
+      if (_random.nextDouble() < 0.15) { // 15% chance per frame at 60fps = ~9 per second
+        _spawnNewParticle();
+      }
+      
+      // Remove expired particles (older than 2 seconds)
+      _particles.removeWhere((particle) {
+        final age = DateTime.now().difference(particle.spawnTime).inMilliseconds;
+        return age > 2000;
+      });
+    });
   }
+
+  void _spawnNewParticle() {
+    // Spawn mostly from sides (left/right), less in middle
+    double x;
+    final sideChance = _random.nextDouble();
+    
+    if (sideChance < 0.75) {
+      // 75% chance: spawn from left or right sides (0-25% or 75-100%)
+      if (_random.nextBool()) {
+        x = 0.05 + _random.nextDouble() * 0.25; // Left side (5-30%)
+      } else {
+        x = 0.70 + _random.nextDouble() * 0.25; // Right side (70-95%)
+      }
+    } else {
+      // 25% chance: spawn in middle section (25-75%)
+      x = 0.30 + _random.nextDouble() * 0.40; // Middle (30-70%)
+    }
+    
+    setState(() {
+      _particles.add(StarParticle(
+        x: x,
+        y: 0.1 + _random.nextDouble() * 0.8, // 10-90% of height
+        size: 6.0 + _random.nextDouble() * 18, // 6-24px
+        baseOpacity: 0.2 + _random.nextDouble() * 0.3, // 0.2-0.5
+        spawnTime: DateTime.now(),
+      ));
+    });
+  }
+
 
   void _onPointerMove(PointerEvent event) {
     setState(() {
       _mousePosition = event.localPosition;
-      _fadeController.forward(from: 0);
     });
   }
 
@@ -83,62 +112,87 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   @override
   void dispose() {
-    _fadeController.dispose();
+    _spawnController.dispose();
     _rippleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerMove: _onPointerMove,
-      onPointerDown: _onPointerDown,
-      child: Stack(
-        children: [
-          // Base background
-          Container(
-            color: const Color(0xFF000000),
+    return Stack(
+      children: [
+        // Base background
+        Container(
+          color: const Color(0xFF000000),
+        ),
+        
+          // Fixed background particles (don't scroll)
+          Positioned.fill(
+            child: Listener(
+              onPointerMove: _onPointerMove,
+              onPointerDown: _onPointerDown,
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_spawnController, _rippleController]),
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: StarParticlePainter(
+                      particles: _particles,
+                      ripples: _ripples,
+                      mousePosition: _mousePosition,
+                      rippleValue: _rippleController.value,
+                    ),
+                    size: Size.infinite,
+                  );
+                },
+              ),
+            ),
           ),
-          
-          // Interactive particles
-          AnimatedBuilder(
-            animation: Listenable.merge([_fadeController, _rippleController]),
-            builder: (context, child) {
-              return CustomPaint(
-                painter: InteractiveParticlePainter(
-                  particles: _particles,
-                  ripples: _ripples,
-                  mousePosition: _mousePosition,
-                  fadeValue: _fadeController.value,
-                  rippleValue: _rippleController.value,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-          
-          // Content
-          widget.child,
-        ],
-      ),
+        
+        // Scrollable content
+        widget.child,
+      ],
     );
   }
 }
 
-class Particle {
+class StarParticle {
   final double x; // 0-1 (percentage of width)
   final double y; // 0-1 (percentage of height)
   final double size;
-  double opacity;
   final double baseOpacity;
+  final DateTime spawnTime;
 
-  Particle({
+  StarParticle({
     required this.x,
     required this.y,
     required this.size,
-    required this.opacity,
     required this.baseOpacity,
+    required this.spawnTime,
   });
+  
+  // Calculate opacity based on age (star-like fade in/out over 2 seconds)
+  double getOpacity() {
+    final age = DateTime.now().difference(spawnTime).inMilliseconds;
+    final progress = (age / 2000.0).clamp(0.0, 1.0);
+    
+    // Fade in first 25%, stay visible 50%, fade out last 25%
+    double fadeMultiplier;
+    if (progress < 0.25) {
+      // Fade in (0 to 0.25 seconds = 0 to 500ms)
+      fadeMultiplier = progress / 0.25;
+    } else if (progress < 0.75) {
+      // Stay at full opacity (0.25 to 0.75 = 500ms to 1500ms)
+      fadeMultiplier = 1.0;
+    } else {
+      // Fade out (0.75 to 1.0 = 1500ms to 2000ms)
+      fadeMultiplier = 1.0 - ((progress - 0.75) / 0.25);
+    }
+    
+    // Add subtle twinkle effect
+    final twinkle = 0.8 + (math.sin(age / 200.0) * 0.2);
+    
+    return baseOpacity * fadeMultiplier * twinkle;
+  }
 }
 
 class ClickRipple {
@@ -153,18 +207,16 @@ class ClickRipple {
   });
 }
 
-class InteractiveParticlePainter extends CustomPainter {
-  final List<Particle> particles;
+class StarParticlePainter extends CustomPainter {
+  final List<StarParticle> particles;
   final List<ClickRipple> ripples;
   final Offset? mousePosition;
-  final double fadeValue;
   final double rippleValue;
 
-  InteractiveParticlePainter({
+  StarParticlePainter({
     required this.particles,
     required this.ripples,
     required this.mousePosition,
-    required this.fadeValue,
     required this.rippleValue,
   });
 
@@ -174,39 +226,32 @@ class InteractiveParticlePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    // Draw particles
+    // Draw each particle as a twinkling star
     for (final particle in particles) {
       final particleX = particle.x * size.width;
       final particleY = particle.y * size.height;
 
+      // Get animated opacity with twinkle effect
+      double opacity = particle.getOpacity();
+
       // Calculate distance from mouse
       double scale = 1.0;
-      double opacity = particle.baseOpacity;
 
       if (mousePosition != null) {
         final dx = particleX - mousePosition!.dx;
         final dy = particleY - mousePosition!.dy;
         final distance = math.sqrt(dx * dx + dy * dy);
-        final maxDistance = 200; // Influence radius
+        const maxDistance = 200.0; // Influence radius
 
         if (distance < maxDistance) {
           // Zoom in 20% when near mouse
           final influence = 1 - (distance / maxDistance);
           scale = 1.0 + (influence * 0.2);
-          opacity = particle.baseOpacity + (influence * 0.4);
-          
-          // Apply fade out effect
-          opacity *= (1 - fadeValue);
-        } else {
-          // Far from mouse - fade out faster
-          opacity *= (1 - fadeValue * 1.5).clamp(0.0, 1.0);
+          opacity = (opacity + (influence * 0.2)).clamp(0.0, 1.0);
         }
-      } else {
-        // No mouse movement - fade out
-        opacity *= (1 - fadeValue * 0.8);
       }
 
-      // Draw square outline
+      // Draw square outline (star)
       if (opacity > 0.01) {
         paint.color = Color.fromRGBO(255, 255, 255, opacity.clamp(0.0, 1.0));
         
@@ -220,6 +265,11 @@ class InteractiveParticlePainter extends CustomPainter {
         canvas.drawRect(rect, paint);
       }
     }
+    
+    // Draw cursor tracking effect
+    if (mousePosition != null) {
+      _drawCursorEffect(canvas, size, paint);
+    }
 
     // Draw click ripples
     for (final ripple in ripples) {
@@ -228,7 +278,6 @@ class InteractiveParticlePainter extends CustomPainter {
       
       if (progress < 1.0) {
         // Expanding square ripple
-        final rippleSize = 10 + (progress * 60); // Expand from 10 to 70
         final rippleOpacity = (1 - progress) * 0.6;
         
         // Draw multiple expanding squares
@@ -237,7 +286,7 @@ class InteractiveParticlePainter extends CustomPainter {
           final delayedProgress = (progress - delay).clamp(0.0, 1.0);
           
           if (delayedProgress > 0) {
-            final size = 10 + (delayedProgress * (60 + i * 20));
+            final rippleSize = 10 + (delayedProgress * (60 + i * 20));
             final opacity = (1 - delayedProgress) * rippleOpacity * (1 - i * 0.3);
             
             paint.color = Color.fromRGBO(255, 255, 255, opacity);
@@ -245,8 +294,8 @@ class InteractiveParticlePainter extends CustomPainter {
             
             final rect = Rect.fromCenter(
               center: Offset(ripple.x, ripple.y),
-              width: size,
-              height: size,
+              width: rippleSize,
+              height: rippleSize,
             );
             
             canvas.drawRect(rect, paint);
@@ -256,12 +305,42 @@ class InteractiveParticlePainter extends CustomPainter {
     }
   }
 
+  double _easeInOutCubic(double t) {
+    if (t < 0.5) {
+      return 4 * t * t * t;
+    } else {
+      return 1 - math.pow(-2 * t + 2, 3) / 2;
+    }
+  }
+
+  void _drawCursorEffect(Canvas canvas, Size size, Paint paint) {
+    if (mousePosition == null) return;
+    
+    // Minimalistic cursor follower - small square outline
+    paint.color = const Color(0x40FFFFFF); // 25% opacity
+    paint.strokeWidth = 1.0;
+    
+    // Small square following cursor
+    final cursorRect = Rect.fromCenter(
+      center: mousePosition!,
+      width: 12,
+      height: 12,
+    );
+    canvas.drawRect(cursorRect, paint);
+    
+    // Even smaller inner square
+    paint.color = const Color(0x20FFFFFF); // 12.5% opacity
+    final innerRect = Rect.fromCenter(
+      center: mousePosition!,
+      width: 6,
+      height: 6,
+    );
+    canvas.drawRect(innerRect, paint);
+  }
+
   @override
-  bool shouldRepaint(covariant InteractiveParticlePainter oldDelegate) {
-    return oldDelegate.mousePosition != mousePosition ||
-        oldDelegate.fadeValue != fadeValue ||
-        oldDelegate.rippleValue != rippleValue ||
-        oldDelegate.ripples.length != ripples.length;
+  bool shouldRepaint(covariant StarParticlePainter oldDelegate) {
+    return true; // Always repaint for smooth animations
   }
 }
 

@@ -38,16 +38,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final position = _scrollController.position.pixels;
     final maxScroll = _scrollController.position.maxScrollExtent;
     
-    if (position < maxScroll * 0.15) {
+    if (position < maxScroll * 0.12) {
       if (_selectedIndex != 0) setState(() => _selectedIndex = 0);
-    } else if (position < maxScroll * 0.4) {
+    } else if (position < maxScroll * 0.35) {
       if (_selectedIndex != 1) setState(() => _selectedIndex = 1);
-    } else if (position < maxScroll * 0.65) {
+    } else if (position < maxScroll * 0.5) {
       if (_selectedIndex != 2) setState(() => _selectedIndex = 2);
-    } else if (position < maxScroll * 0.85) {
+    } else if (position < maxScroll * 0.65) {
       if (_selectedIndex != 3) setState(() => _selectedIndex = 3);
-    } else {
+    } else if (position < maxScroll * 0.85) {
       if (_selectedIndex != 4) setState(() => _selectedIndex = 4);
+    } else {
+      if (_selectedIndex != 5) setState(() => _selectedIndex = 5);
     }
   }
 
@@ -85,9 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SliverToBoxAdapter(
                 child: StatisticsSection(),
               ),
-              const SliverToBoxAdapter(
-                child: CombinedExpertiseSection(),
-              ),
               SliverToBoxAdapter(
                 child: AutoScrollTag(
                   key: const ValueKey(1),
@@ -109,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   key: const ValueKey(3),
                   controller: _scrollController,
                   index: 3,
-                  child: const AboutSection(),
+                  child: const CombinedExpertiseSection(),
                 ),
               ),
               SliverToBoxAdapter(
@@ -117,6 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   key: const ValueKey(4),
                   controller: _scrollController,
                   index: 4,
+                  child: const AboutSection(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: AutoScrollTag(
+                  key: const ValueKey(5),
+                  controller: _scrollController,
+                  index: 5,
                   child: const ContactSection(),
                 ),
               ),

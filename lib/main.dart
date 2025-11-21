@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'utils/constants.dart';
+import 'widgets/loading_screen.dart';
 
 void main() {
   runApp(const PortfolioApp());
@@ -28,7 +29,9 @@ class PortfolioApp extends StatelessWidget {
           surface: AppColors.background,
         ),
       ),
-      home: const HomeScreen(),
+      home: const LoadingScreen(
+        child: HomeScreen(),
+      ),
     );
   }
 }

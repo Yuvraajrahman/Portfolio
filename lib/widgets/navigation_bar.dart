@@ -92,8 +92,9 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
                   _buildNavItem('Home', 0),
                   _buildNavItem('Projects', 1),
                   _buildNavItem('AI/ML', 2),
-                  _buildNavItem('About', 3),
-                  _buildNavItem('Contact', 4),
+                  _buildNavItem('Skills', 3),
+                  _buildNavItem('About', 4),
+                  _buildNavItem('Contact', 5),
                 ],
               )
             else
@@ -125,32 +126,43 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
             onTap: () => widget.onItemSelected(index),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.secondary,
-                    letterSpacing: 1,
-                  ),
+            borderRadius: BorderRadius.circular(8),
+            splashColor: AppColors.primary.withValues(alpha: 0.2),
+            highlightColor: AppColors.primary.withValues(alpha: 0.1),
+            hoverColor: AppColors.primary.withValues(alpha: 0.05),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.secondary,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 2,
+                      width: isSelected ? 20 : 0,
+                      color: AppColors.primary,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  height: 2,
-                  width: isSelected ? 20 : 0,
-                  color: AppColors.primary,
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -173,8 +185,9 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
             _buildMobileNavItem('Home', 0, context),
             _buildMobileNavItem('Projects', 1, context),
             _buildMobileNavItem('AI/ML', 2, context),
-            _buildMobileNavItem('About', 3, context),
-            _buildMobileNavItem('Contact', 4, context),
+            _buildMobileNavItem('Skills', 3, context),
+            _buildMobileNavItem('About', 4, context),
+            _buildMobileNavItem('Contact', 5, context),
           ],
         ),
       ),
@@ -184,19 +197,26 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
   Widget _buildMobileNavItem(String title, int index, BuildContext context) {
     final isSelected = widget.selectedIndex == index;
     
-    return ListTile(
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          color: isSelected ? AppColors.primary : AppColors.secondary,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          widget.onItemSelected(index);
+          Navigator.pop(context);
+        },
+        splashColor: AppColors.primary.withValues(alpha: 0.2),
+        highlightColor: AppColors.primary.withValues(alpha: 0.1),
+        child: ListTile(
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected ? AppColors.primary : AppColors.secondary,
+            ),
+          ),
         ),
       ),
-      onTap: () {
-        widget.onItemSelected(index);
-        Navigator.pop(context);
-      },
     );
   }
 }

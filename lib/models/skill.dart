@@ -64,6 +64,16 @@ class SkillsData {
         ],
       ),
       Skill(
+        name: 'SEO & Marketing',
+        icon: '🔍',
+        items: [
+          'Search Engine Optimization',
+          'Technical SEO',
+          'On-Page Optimization',
+          'Performance Optimization',
+        ],
+      ),
+      Skill(
         name: 'Database & Systems',
         icon: '🗄️',
         items: [
