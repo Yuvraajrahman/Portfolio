@@ -1,0 +1,15 @@
+This in my cv provided in the scrrenshot, ignore the profile photo. 
+i need to build a website for my cv, with
+flutter and dart... 
+make sure its modern , that looks professional, a lot of animations, minimalistic, color sceme is mostly black and white, .. 
+
+there are some projects menstions in the cv, focus on showcaising theme, 
+dont put much expericen in the work experience section, focus on the projects and skills.. 
+for my co curricular activities, focus on the projects and skills.. .. highlight them somehow. 
+
+focus mostly on showcasing my self as a full stack developer who has medium level skills in all the projects mensitoned in the cv and the skills used to make them. 
+
+
+
+
+

@@ -1,0 +1,12 @@
+{
+  "name": "Bokhtiar Rahman Juboraz Portfolio",
+  "short_name": "Portfolio",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ffffff",
+  "description": "Full Stack Developer Portfolio",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
+
