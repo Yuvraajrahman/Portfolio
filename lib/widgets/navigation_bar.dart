@@ -91,7 +91,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
                 children: [
                   _buildNavItem('Home', 0),
                   _buildNavItem('Projects', 1),
-                  _buildNavItem('Skills', 2),
+                  _buildNavItem('AI/ML', 2),
                   _buildNavItem('About', 3),
                   _buildNavItem('Contact', 4),
                 ],
@@ -172,7 +172,7 @@ class _CustomNavigationBarState extends State<CustomNavigationBar> {
           children: [
             _buildMobileNavItem('Home', 0, context),
             _buildMobileNavItem('Projects', 1, context),
-            _buildMobileNavItem('Skills', 2, context),
+            _buildMobileNavItem('AI/ML', 2, context),
             _buildMobileNavItem('About', 3, context),
             _buildMobileNavItem('Contact', 4, context),
           ],

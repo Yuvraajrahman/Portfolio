@@ -47,7 +47,7 @@ class _HeroSectionState extends State<HeroSection>
     final isMobile = size.width < 768;
 
     return Container(
-      height: size.height,
+      height: isMobile ? size.height * 0.85 : size.height * 0.75,
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(

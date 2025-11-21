@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/constants.dart';
+import 'social_links.dart';
 
 class ContactSection extends StatefulWidget {
   const ContactSection({super.key});
@@ -183,6 +184,14 @@ class _ContactSectionState extends State<ContactSection> {
                               title: 'Location',
                               subtitle: 'Badda, Dhaka, Bangladesh',
                               onTap: null,
+                              isMobile: isMobile,
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Social Links
+                            SocialLinks(
+                              isVertical: false,
                               isMobile: isMobile,
                             ),
 

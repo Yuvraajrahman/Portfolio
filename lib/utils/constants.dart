@@ -73,10 +73,10 @@ class AppTextStyles {
 }
 
 class AppConstants {
-  static const double maxWidth = 1200;
+  static const double maxWidth = 1400;
   static const double horizontalPadding = 80;
   static const double horizontalPaddingMobile = 24;
-  static const double sectionSpacing = 120;
-  static const double sectionSpacingMobile = 80;
+  static const double sectionSpacing = 60;
+  static const double sectionSpacingMobile = 40;
 }
 
